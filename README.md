@@ -48,8 +48,7 @@ source myenv/bin/activate  # On Linux/macOS
 myenv\Scripts\activate  # On Windows
 content_copy
 download
-Use code with caution.
-Markdown
+.Markdown
 
 Example using conda:
 
@@ -57,8 +56,7 @@ conda create -n myenv python=3.8  # Create a conda environment named 'myenv' wit
 conda activate myenv              # Activate the conda environment
 content_copy
 download
-Use code with caution.
-Bash
+.Bash
 Installation
 
 Clone the repository (if applicable) or download the app.py file. If you have access to the project repository, clone it using Git:
@@ -67,8 +65,7 @@ git clone [repository_url]
 cd [repository_directory]
 content_copy
 download
-Use code with caution.
-Bash
+.Bash
 
 Otherwise, download the app.py file and place it in a directory of your choice.
 
@@ -77,8 +74,7 @@ Install Required Python Libraries: Navigate to the project directory in your ter
 pip install streamlit pandas scikit-learn ydata-profiling category-encoders xgboost catboost scipy plotly matplotlib
 content_copy
 download
-Use code with caution.
-Bash
+.Bash
 
 Explanation of Libraries:
 
@@ -113,8 +109,7 @@ Run the Streamlit app using the command:
 streamlit run app.py
 content_copy
 download
-Use code with caution.
-Bash
+.Bash
 
 Open the App in Your Browser: Streamlit will provide a local URL (usually http://localhost:8501 or http://your_network_ip:8501). Open this URL in your web browser to access the Data2Model application.
 
@@ -274,21 +269,12 @@ Addressing Streamlit selectbox default Parameter Incompatibility: Resolving the 
 
 These challenges, while demanding, provided valuable learning experiences and contributed to the development of a more robust and user-centered application.
 
-Contributing (Optional)
+Contributor
 
-[If you want to make your project open-source and accept contributions, add a section here explaining how others can contribute (e.g., through pull requests, bug reports, feature requests).]
+Contact 
 
-License (Optional)
-
-[If you want to specify a license for your project, mention it here (e.g., MIT License, Apache 2.0, etc.).]
-
-Contact (Optional)
-
-[If you want to provide contact information for users to reach out with questions or feedback, add it here (e.g., email address, GitHub profile link).]
 
 Enjoy using Data2Model! This application is intended to be a helpful tool for exploring data and experimenting with machine learning models. Please note that it's designed for educational and demonstrative purposes and may not be suitable for production-level, mission-critical applications without further testing and validation.
 
-This README provides a comprehensive overview of your Streamlit app. Make sure to replace the bracketed placeholders (`[repository_url]`, `[repository_directory]`, "If you want to make...", "If you want to specify...", "If you want to provide...") with your actual project details if you intend to share or distribute your application.
-content_copy
-download
-Use code with caution.
+
+.
