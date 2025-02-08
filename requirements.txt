@@ -1,0 +1,11 @@
+streamlit
+pandas
+ydata-profiling
+scikit-learn
+openpyxl  # Required for reading Excel files
+IPython  # Required for ydata-profiling
+ipywidgets
+xgboost
+plotly
+category_encoders
+catboost
