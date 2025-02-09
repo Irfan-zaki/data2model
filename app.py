@@ -23,7 +23,7 @@ from sklearn.cluster import KMeans # Example for unsupervised
 from sklearn.decomposition import PCA # Example for unsupervised
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.tree import DecisionTreeClassifier
-            # Import other necessary libraries based on algorithms you include
+from sklearn.preprocessing import PolynomialFeatures
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 import plotly.express as px # For interactive plots
 import matplotlib.pyplot as plt # For dendrogram
@@ -63,15 +63,15 @@ def handle_missing_values(df):
                 skewness = df[column].skew()
                 if abs(skewness) < 1:  # Normal distribution
                     df[column] = df[column].fillna(df[column].mean())
-                    time.sleep(1)  # Add a delay of 1 second before showing the success message
+                    time.sleep(1.5)  # Add a delay of 1 second before showing the success message
                     st.success(f"✅ Filled missing values in **{column}** using **Mean**.")
                 else:  # Skewed data
                     df[column] = df[column].fillna(df[column].median())
-                    time.sleep(1)  # Add a delay of 1 second before showing the success message
+                    time.sleep(1.5)  # Add a delay of 1 second before showing the success message
                     st.success(f"✅ Filled missing values in **{column}** using **Median**.")
             else:
                 df[column] = df[column].fillna(df[column].mode().iloc[0])
-                time.sleep(1)  # Add a delay of 1 second before showing the success message
+                time.sleep(1.5)  # Add a delay of 1 second before showing the success message
                 st.success(f"✅ Filled missing values in **{column}** using **Mode**.")
     return df
 
@@ -115,7 +115,7 @@ def scale_data(df):
             scalers[col] = scaler_minmax # Store scaler
 
     # Display Scaling Information
-    time.sleep(1)
+    time.sleep(1.5)
     st.subheader("✅ **Scaling Applied Successfully**")
     for col, method in scaling_info.items():
         time.sleep(0.5)
@@ -474,7 +474,7 @@ algorithm_options = {
                     "help": "If True, only interaction features are produced: features that are products of at most degree distinct input features (so no powers of single features).",
                 },
             },
-            "model": "PolynomialRegression", # Note: We'll need to handle PolynomialFeatures and LinearRegression together in the training code
+            "model": "PolynomialFeatures",
             "library": "sklearn.preprocessing" # Using preprocessing library for PolynomialFeatures
         },
         "Decision Tree": {
@@ -865,8 +865,16 @@ algorithm_options = {
 
 with tab1:
     st.header("Data Cleaning and Machine Learning Simulator")
-    with st.expander("Expand for more details !"):
-        st.write("this is your all in one machine learning simulator I am very happyu about it this is a good world This can perform data cleanign and machine learning and trainign and also prediction while i was in my ml stage i was unbale  to understand algorithm visually  ")
+    import streamlit as st
+
+    with st.expander("This tab helps you prepare your dataset for machine learning by automating data cleaning and model training. Expand here to know how the process works:👇"):
+        st.write("1. **Upload Your Dataset** – Start by uploading your raw data file.🙂")  
+        st.write("2. **Remove Unwanted Columns** – Select and drop any columns you don’t need.😃")  
+        st.write("3. **Handle Missing Values** – Automatically fills missing data or removes incomplete rows based on the best approach.🙃")  
+        st.write("4. **Encode Categorical Data** – Converts text-based categories into numbers so the model can understand them.😉")  
+        st.write("5. **Scale Numerical Features** – Normalizes numbers so that all features contribute equally to the model.🙂")  
+        st.write("6. **Train a Machine Learning Model** – Uses the cleaned dataset to train a model that can make predictions.🙃")  
+        st.write("7. **Make Predictions** – Once the model is trained, use it to predict the target variable on new data.😃")
     uploaded_file = st.file_uploader("Upload CSV or Excel file", type=["csv", "xlsx"])
     if uploaded_file is not None:
         try:
@@ -945,7 +953,7 @@ with tab1:
 
             if problem_type != "Unsupervised Learning": # Feature/Target selection only for supervised learning
                 target_variable = st.sidebar.selectbox("Select Target Variable", st.session_state.cleaned_data.columns)
-                available_features = st.session_state.cleaned_data.columns.drop(target_variable)
+                available_features = st.session_state.cleaned_data.columns.drop(target_variable, errors='ignore')
                 all_option = "Select All"
                 selected_features_options = [all_option] + list(available_features)
                 selected_features = st.sidebar.multiselect(
@@ -1017,14 +1025,28 @@ with tab1:
                             # Instantiate the model with selected parameters
                             model = model_class(**params)  # Pass parameter dictionary
 
-                            if problem_type != "Unsupervised Learning": # Supervised Learning
+                            if problem_type != "Unsupervised Learning": 
+                                # Supervised Learning
+                                
                                 X = st.session_state.cleaned_data[selected_features]
                                 y = st.session_state.cleaned_data[target_variable]
                                 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42) # Example split
+                                if algorithm_name == "Polynomial Regression":
+                                                            poly_features = PolynomialFeatures(degree=params['degree'],
+                                                                                                include_bias=params['include_bias'],
+                                                                                                interaction_only=params['interaction_only'])
+                                                            X_poly_train = poly_features.fit_transform(X_train)
+                                                            X_poly_test = poly_features.transform(X_test) # Use transform on test data
+
+                                                            # **Correct Model Instantiation: Use LinearRegression, not PolynomialFeatures**
+                                                            model = LinearRegression(fit_intercept=False) # Instantiate LinearRegression model
+                                                            model.fit(X_poly_train, y_train) # Fit LinearRegression on POLYNOMIAL features
+                                                            y_pred = model.predict(X_poly_test) # Predict using the LINEAR REGRESSION MODEL
 
                                 model.fit(X_train, y_train) # Train the model
                                 st.session_state['trained_model'] = model  # Store 'model' in session state with key 'trained_model'
                                 y_pred = model.predict(X_test)
+                            
 
                                 st.subheader("Your Model Report") # Or Regression Metrics, etc. based on problem_type
                                 if problem_type == "Classification":
@@ -1227,7 +1249,7 @@ with tab1:
                     except ImportError as ie: # Catch ImportError for library issues
                         st.error(f"Import Error: Could not import necessary library for {algorithm_name}. Please ensure library '{model_library}' is installed.")
                         st.error(f"Details: {ie}")
-                        st.exception(ie) # Show full exception details for debugging
+                        st.exception(ie) 
                     except ValueError as ve: # Catch ValueError for data issues (e.g., empty data)
                         st.error(f"Value Error: Problem with input data for {algorithm_name}. Please check your data and selected features.")
                         st.error(f"Details: {ve}")
@@ -1235,103 +1257,103 @@ with tab1:
                     except Exception as e: # General exception catch for other errors
                         st.error(f"Error during model training for {algorithm_name}: {e}")
                         st.error("Please check your data, selected features, target variable, and parameters.")
-                        st.exception(e) # Show full exception details for debugging
+                        st.exception(e) 
 
                     
-            # ... (Problem Type, Algorithm, Feature/Target, Parameter Selection, Train Button - as before) ...
             
 
             # ---------------------- Prediction Section in Sidebar (Selectbox Inputs) ----------------------
-            st.sidebar.header("Make Predictions")
-            predict_button = False
-            prediction_inputs = {}
+            # st.sidebar.header("Make Predictions")
+            # predict_button = False
+            # prediction_inputs = {}
 
-            if problem_type != "Unsupervised Learning" and algorithm_name and st.session_state.get('model_trained', False):
-                st.sidebar.subheader("Input Features for Prediction")
-                st.sidebar.write("Select values for the input features:")
+            # if problem_type != "Unsupervised Learning" and algorithm_name and st.session_state.get('model_trained', False):
+            #     st.sidebar.subheader("Input Features for Prediction")
+            #     st.sidebar.write("Select values for the input features:")
 
-                for feature in selected_features:
-                    # **Use st.session_state.original_data to get unique values**
-                    feature_values = st.session_state.original_data[feature].unique()
-                    # Sort numeric values for better selectbox order (optional but good for numeric features)
-                    if pd.api.types.is_numeric_dtype(st.session_state.cleaned_data[feature].dtype): # Still use cleaned_data dtype check, as scaling doesn't change dtype
-                        feature_values = sorted(feature_values)
+            #     for feature in selected_features:
+            #         # **Use st.session_state.original_data to get unique values**
+            #         feature_values = st.session_state.cleaned_data[feature].unique()
+            #         # Sort numeric values for better selectbox order (optional but good for numeric features)
+            #         if pd.api.types.is_numeric_dtype(st.session_state.cleaned_data[feature].dtype): # Still use cleaned_data dtype check, as scaling doesn't change dtype
+            #             feature_values = sorted(feature_values)
 
-                    # Limit options to a reasonable number for selectbox clarity
-                    num_options_to_display = min(10, len(feature_values)) # Display max 10 options or fewer if less unique values
-                    selectbox_options = list(feature_values[:num_options_to_display]) # Take top options
+            #         # Limit options to a reasonable number for selectbox clarity
+            #         num_options_to_display = min(10, len(feature_values)) # Display max 10 options or fewer if less unique values
+            #         selectbox_options = list(feature_values[:num_options_to_display]) # Take top options
 
-                    default_option = selectbox_options[0] if selectbox_options else None # Default to first option if available
+            #         default_option = selectbox_options[0] if selectbox_options else None # Default to first option if available
 
-                    param_key = f"selectbox_prediction_{feature}" # Unique key for each prediction selectbox
+            #         param_key = f"selectbox_prediction_{feature}" # Unique key for each prediction selectbox
 
-                    # Check if session state already has a value for this selectbox
-                    if param_key not in st.session_state:
-                        st.session_state[param_key] = default_option  # Set default in session state if not yet set
+            #         # Check if session state already has a value for this selectbox
+            #         if param_key not in st.session_state:
+            #             st.session_state[param_key] = default_option  # Set default in session state if not yet set
 
-                    prediction_inputs[feature] = st.sidebar.selectbox(
-                        f"Select {feature}",
-                        options=selectbox_options,
-                        # default=default_option,  # REMOVE the default parameter
-                        key=param_key, # Use unique key for session state management
-                        format_func=lambda x: str(x)
-                    )
+            #         prediction_inputs[feature] = st.sidebar.selectbox(
+            #             f"Select {feature}",
+            #             options=selectbox_options,
+            #             # default=default_option,  # REMOVE the default parameter
+            #             key=param_key, # Use unique key for session state management
+            #             format_func=lambda x: str(x)
+            #         )
 
-                predict_button = st.sidebar.button("Predict Target Variable")
+            #     predict_button = st.sidebar.button("Predict Target Variable")
 
-            elif problem_type == "Unsupervised Learning":
-                st.sidebar.write("Prediction not applicable for Unsupervised Learning.")
-            elif not algorithm_name:
-                st.sidebar.warning("Please select an algorithm first to enable prediction.")
-            elif not st.session_state.get('model_trained', False):
-                st.sidebar.warning("Please train a model first to make predictions.")
-
-
-            if train_button: # Model Training Logic (No changes needed)
-                st.header("Model Training Results")
-                # ... (Rest of your train_button logic) ...
-                st.session_state['model_trained'] = True
-                st.success("Model trained successfully!")
+            # elif problem_type == "Unsupervised Learning":
+            #     st.sidebar.write("Prediction not applicable for Unsupervised Learning.")
+            # elif not algorithm_name:
+            #     st.sidebar.warning("Please select an algorithm first to enable prediction.")
+            # elif not st.session_state.get('model_trained', False):
+            #     st.sidebar.warning("Please train a model first to make predictions.")
 
 
-            if predict_button: # Prediction Logic
-                st.header("Prediction Results")
-                feature_scalers = st.session_state.get('feature_scalers') # Retrieve feature scalers
-
-                if problem_type != "Unsupervised Learning" and algorithm_name and st.session_state.get('model_trained', True):
-                    try:
-                        model = st.session_state['trained_model'] # Get 'model' from session state
-                        # Prepare input data for prediction (using values from selectboxes)
-                        input_df = pd.DataFrame([prediction_inputs], columns=selected_features)
-
-                        # Ensure correct feature order
-                        input_df = input_df[selected_features]
-
-                        # **Scale input data (if feature_scalers exist) BEFORE encoding**
-                        input_df_scaled = input_df.copy() # Initialize input_df_scaled
-                        if feature_scalers: # Apply scaling using stored scalers
-                            for feature in selected_features:
-                                if feature in feature_scalers:
-                                    scaler = feature_scalers[feature]
-                                    input_df_scaled[feature] = scaler.transform(input_df[[feature]]) # Scale in place
-
-                        # **Encode scaled data**
-                        input_df_encoded = encode_categorical_columns(input_df_scaled.copy()) # Encode scaled data (make a copy)
+            # if train_button: # Model Training Logic (No changes needed)
+            #     st.header("Model Training Results")
+            #     # ... (Rest of your train_button logic) ...
+            #     st.session_state['model_trained'] = True
+            #     st.success("Model trained successfully!")
 
 
-                        # Make prediction using the PREPROCESSED input data
-                        predicted_value = model.predict(input_df_encoded) # Predict using encoded and scaled input
+            # if predict_button: # Prediction Logic
+            #     st.header("Prediction Results")
+            #     feature_scalers = st.session_state.get('feature_scalers') # Retrieve feature scalers
 
-                        st.subheader("Predicted Target Variable:")
-                        if problem_type == "Classification":
-                            st.write(f"Predicted Class: **{predicted_value[0]}**")
-                        elif problem_type == "Regression":
-                            target_scaler = st.session_state.get('target_scaler') # Retrieve target scaler
-                            if target_scaler:
-                                predicted_value_unscaled = target_scaler.inverse_transform(predicted_value.reshape(-1, 1)) # Inverse transform, reshape if needed
-                                st.write(f"Predicted Value (Original Scale): **{predicted_value_unscaled[0, 0]:.3f}**") # Display unscaled value
-                            else: # If no target scaler found (maybe target wasn't scaled)
-                                st.write(f"Predicted Value (Scaled): **{predicted_value[0]:.3f}**") # Display scaled value with a note
+            #     if problem_type != "Unsupervised Learning" and algorithm_name and st.session_state.get('model_trained', True):
+            #         try:
+            #             model = st.session_state['trained_model'] # Get 'model' from session state
+            #             # Prepare input data for prediction (using values from selectboxes)
+            #             input_df = pd.DataFrame([prediction_inputs], columns=selected_features)
+
+            #             # Ensure correct feature order
+            #             input_df = input_df[selected_features]
+
+            #             # **Scale input data (if feature_scalers exist) BEFORE encoding**
+            #             input_df_scaled = input_df.copy() # Initialize input_df_scaled
+            #             if feature_scalers: # Apply scaling using stored scalers
+            #                 for feature in selected_features:
+            #                     if feature in feature_scalers:
+            #                         scaler = feature_scalers[feature]
+            #                         input_df_scaled[feature] = scaler.transform(input_df[[feature]]) # Scale in place
+
+            #             # **Encode scaled data**
+            #             input_df_encoded = encode_categorical_columns(input_df_scaled.copy()) # Encode scaled data (make a copy)
+
+
+            #             # Make prediction using the PREPROCESSED input data
+            #             predicted_value = model.predict(input_df_encoded) # Predict using encoded and scaled input
+
+            #             st.subheader("Predicted Target Variable:")
+            #             if problem_type == "Classification":
+            #                 st.write(f"Predicted Class: **{predicted_value[0]}**")
+            #             elif problem_type == "Regression":
+                            
+            #                 target_scaler = st.session_state.get('target_scaler') # Retrieve target scaler
+            #                 if target_scaler:
+            #                     predicted_value_unscaled = target_scaler.inverse_transform(predicted_value.reshape(-1, 1)) # Inverse transform, reshape if needed
+            #                     st.write(f"Predicted Value (Original Scale): **{predicted_value_unscaled[0, 0]:.3f}**") # Display unscaled value
+            #                 else: # If no target scaler found (maybe target wasn't scaled)
+            #                     st.write(f"Predicted Value (Scaled): **{predicted_value[0]:.3f}**") # Display scaled value with a note
 
                     except Exception as e:
                         st.error(f"Error during prediction: {e}")
